@@ -3,7 +3,7 @@
         <div class="main">
             <div class="form-content">
                 <img class="icon" src="../assets/default_icon.jpg" alt="">
-                <router-link class="to-register" to="/register">注册</router-link> 
+                <router-link class="link to-register" to="/register">注册</router-link> 
 
                 <form action="">
                     <el-input v-model="userName" placeholder="手机号或邮箱"></el-input>
@@ -36,7 +36,8 @@ export default {
         loginAccount() {
             this.loginInfo = ''
 
-            if(this.recognizeName() && this.enCode()) {
+            if(this.recognizeName() && this.checkPassword()) {
+                this.account.password = this.enCode(this.password)
                 this.logining = true
             }
             
@@ -58,17 +59,20 @@ export default {
             return true
         },
 
-        //MD5加密
-        enCode() {
+        //检查密码
+        checkPassword() {
             if(this.userPwd.length < 6 || this.userPwd.length > 20) {
                 this.loginInfo = '密码格式错误'
                 return false
             }
-                
-
-            this.account.password = this.userPwd
 
             return true
+        },
+
+        //MD5加密
+        //咕咕咕
+        enCode(password) {
+            return password
         }
     }
 }
@@ -102,7 +106,7 @@ export default {
         border-radius: 50%;
     }
 
-    .to-register {
+    .link {
         position: absolute;
         top: 1.5rem;
         right: 1.5rem;
@@ -117,6 +121,8 @@ export default {
         width: 100%;
         height: 2.5rem;
         margin: 10px auto;
+        background-color: #409EFF;
+        border-color: white;
     }
 
     .loginInfo {
