@@ -43,6 +43,8 @@ export default {
             
             console.log(this.account)
             // this.$router.push({name: 'Home'})
+
+            this.axios.get('/api').then(console.log)
         },
 
         //判断手机号或邮箱
