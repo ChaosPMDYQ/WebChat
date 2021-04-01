@@ -41,7 +41,7 @@
                             <i slot="suffix" class="el-input__icon" :class="inputSuffixIcon[4]"></i>
                         </el-input>
                     </div>
-
+                    <p class="register-info">{{registerInfo}}</p>
                     <el-button type="primary" :loading="registering" @click="registerAccount">注册</el-button>
                 </form>
             </div>
@@ -73,25 +73,53 @@ export default {
             iconCheck: 'el-icon-check',
             iconError: 'el-icon-close',
             
+            registerInfo: '',
             registering: false
         }
     },
     methods: {
         registerAccount() {
+            //如果注册信息无效，取消注册
+            for(let i of this.inputSuffixIcon) {
+                if(i != this.iconCheck) {
+                    this.registerInfo = '请填写有效的注册信息'
+                    return
+                }
+            }
+
+            this.registerInfo = ''
+            this.registering = true
             this.account = {
                 nickName: this.nickName,
                 phone: this.phone,
                 email: this.email,
-                password: this.enCode(this.password)
+                password: this.$md5(this.password)
             }
 
-            console.log(this.account)
-        },
+            this.axios.post('/api/register', {
+                type: 'register',
+                account: this.account
+            }).then(res => {
+                if(res.data.success) {
+                    localStorage.setItem('token', res.data.token)
+                    localStorage.setItem('userInfo', JSON.stringify(res.data.userInfo))
 
-        //MD5加密
-        enCode(password) {
-            //Code
-            return password
+                    this.$router.push({name: 'Home'})
+                }
+                //使用的手机号或邮箱可能被抢先注册了
+                else {
+                    this.checkName()
+                    this.checkPhone()
+                    this.checkEmail()
+                    this.checkPassword()
+                    this.checkPwdAgain()
+                }
+
+                this.registering = false
+            }).catch(() => {
+                this.registerInfo = '网络错误，请确认网络连接后重试'
+                this.registering = false
+            })
         },
 
         //检查昵称
@@ -99,49 +127,70 @@ export default {
             if(this.nickName.match(/^[\u4E00-\u9FA5A-Za-z0-9_]{2,12}$/)) {
                 this.errorInfo.splice(0, 1, '')
                 this.inputSuffixIcon.splice(0, 1, this.iconCheck)
-                return true
             }
-
-            this.errorInfo.splice(0, 1, '请输入正确的昵称') 
-            this.inputSuffixIcon.splice(0, 1, this.iconError)
-
-            return false
+            else {
+                this.errorInfo.splice(0, 1, '请输入正确的昵称') 
+                this.inputSuffixIcon.splice(0, 1, this.iconError)
+            }
         },
 
         //检查手机号并询问服务器该手机号有没有被注册
         checkPhone() {
             if(this.phone.match(/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/)) {
-                //访问服务器
-                //Code
-
-                this.errorInfo.splice(1, 1, '')
-                this.inputSuffixIcon.splice(1, 1, this.iconCheck)
+                this.inputSuffixIcon.splice(1, 1, this.iconLoading)
                 
-                return true
-            }
-            
-            this.errorInfo.splice(1, 1, '请输入正确的手机号')
-            this.inputSuffixIcon.splice(1, 1, this.iconError)
+                //查询数据库该手机号是否被使用过
+                this.axios.post('/api/register', {
+                    type: 'checkPhone',
+                    phone: this.phone
+                }).then(res => {
+                    if(res.data.success) {
+                        this.errorInfo.splice(1, 1, '')
+                        this.inputSuffixIcon.splice(1, 1, this.iconCheck)
+                    }
+                    else {
+                        this.errorInfo.splice(1, 1, '该手机号已被使用了')
+                        this.inputSuffixIcon.splice(1, 1, this.iconError)
+                    }
+                }).catch(() => {
+                    this.errorInfo.splice(1, 1, '网络错误')
+                    this.inputSuffixIcon.splice(1, 1, '')
+                })
 
-            return false
+            }
+            else {
+                this.errorInfo.splice(1, 1, '请输入正确的手机号')
+                this.inputSuffixIcon.splice(1, 1, this.iconError)
+            }
         },
 
         //检查邮箱并询问服务器该邮箱有没有被注册
         checkEmail() {
             if(this.email.match(/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/)) {
-                //访问服务器
-                //Code
+                this.inputSuffixIcon.splice(2, 1, this.iconLoading)
 
-                this.errorInfo.splice(2, 1, '')
-                this.inputSuffixIcon.splice(2, 1, this.iconCheck)
-
-                return true
+                //查询数据库该邮箱是否被使用过
+                this.axios.post('/api/register', {
+                    type: 'checkEmail',
+                    email: this.email
+                }).then(res => {
+                    if(res.data.success) {
+                        this.errorInfo.splice(2, 1, '')
+                        this.inputSuffixIcon.splice(2, 1, this.iconCheck)
+                    }
+                    else {
+                        this.errorInfo.splice(2, 1, '该邮箱已被使用了')
+                        this.inputSuffixIcon.splice(2, 1, this.iconError)
+                    }
+                }).catch(() => {
+                    this.errorInfo.splice(2, 1, '网络错误')
+                    this.inputSuffixIcon.splice(2, 1, '')
+                })
             }
-
-            this.errorInfo.splice(2, 1, '请输入正确的邮箱')
-            this.inputSuffixIcon.splice(2, 1, this.iconError)
-
-            return false
+            else {
+                this.errorInfo.splice(2, 1, '请输入正确的邮箱')
+                this.inputSuffixIcon.splice(2, 1, this.iconError)
+            }
         },
 
         //检查密码是否合法
@@ -149,14 +198,11 @@ export default {
             if(this.password.match(/^([a-zA-Z0-9~!@#$%^&*()-_=+{}'"\\|,<.>/?]){6,20}$/)) {
                 this.errorInfo.splice(3, 1, '')
                 this.inputSuffixIcon.splice(3, 1, this.iconCheck)
-
-                return true
             }
-
-            this.errorInfo.splice(3, 1, '请输入符合规范的密码')
-            this.inputSuffixIcon.splice(3, 1, this.iconError)
-
-            return false
+            else {
+                this.errorInfo.splice(3, 1, '请输入符合规范的密码')
+                this.inputSuffixIcon.splice(3, 1, this.iconError)
+            }
         },
 
         //检查两次密码输入是否一致
@@ -164,14 +210,11 @@ export default {
             if(this.password == this.pwdAgain) {
                 this.errorInfo.splice(4, 1, '')
                 this.inputSuffixIcon.splice(4, 1, this.iconCheck)
-
-                return true
             }
-            
-            this.errorInfo.splice(4, 1, '两次密码不一致')
-            this.inputSuffixIcon.splice(4, 1, this.iconError)
-
-            return false
+            else {
+                this.errorInfo.splice(4, 1, '两次密码不一致')
+                this.inputSuffixIcon.splice(4, 1, this.iconError)
+            }
         }
     }
 }
@@ -247,6 +290,16 @@ export default {
         margin: 10px auto;
         background-color: #409EFF;
         border-color: white;
+    }
+
+    .register-info {
+        width:100%;
+        height: .8rem;
+        margin: 0;
+        padding: 0 .6rem;
+        text-align: left;
+        font-size: .8rem;
+        color: #F56C6C;
     }
 
     i.el-input__icon {

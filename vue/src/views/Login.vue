@@ -7,8 +7,8 @@
 
                 <form action="">
                     <el-input v-model="userName" placeholder="手机号或邮箱"></el-input>
-                    <el-input v-model="userPwd" placeholder="密码" show-password></el-input>
-                    <p class="loginInfo">{{loginInfo}}</p>
+                    <el-input v-model="password" placeholder="密码" show-password></el-input>
+                    <p class="login-info">{{loginInfo}}</p>
                     <el-button type="primary" :loading="logining" @click="loginAccount">登录</el-button>
                 </form>
             </div>
@@ -27,7 +27,7 @@ export default {
                 password: ''
             },
             userName: '',
-            userPwd: '',
+            password: '',
             loginInfo: '',
             logining: false
         }
@@ -35,16 +35,27 @@ export default {
     methods: {
         loginAccount() {
             this.loginInfo = ''
-
-            if(this.recognizeName() && this.checkPassword()) {
-                this.account.password = this.enCode(this.password)
-                this.logining = true
-            }
             
-            console.log(this.account)
-            // this.$router.push({name: 'Home'})
+            //检查登录信息
+            if(!this.recognizeName() || !this.checkPassword()) 
+                return
 
-            this.axios.get('/api').then(console.log)
+            this.logining = true
+            this.axios.post('/api/login', this.account).then(res => {
+                if(res.data.success) {
+                    localStorage.setItem('token', res.data.token)
+                    localStorage.setItem('userInfo', JSON.stringify(res.data.userInfo))
+
+                    this.$router.push({name: 'Home'})
+                }
+                else {
+                    this.loginInfo = res.data.message
+                }
+                this.logining = false
+            }).catch(() => {
+                this.loginInfo = '网络错误，请确认网络连接后重试'
+                this.logining = false
+            })
         },
 
         //判断手机号或邮箱
@@ -63,18 +74,13 @@ export default {
 
         //检查密码
         checkPassword() {
-            if(this.userPwd.length < 6 || this.userPwd.length > 20) {
+            if(this.password.length < 6 || this.password.length > 20) {
                 this.loginInfo = '密码格式错误'
                 return false
             }
 
+            this.account.password = this.$md5(this.password)
             return true
-        },
-
-        //MD5加密
-        //咕咕咕
-        enCode(password) {
-            return password
         }
     }
 }
@@ -127,7 +133,7 @@ export default {
         border-color: white;
     }
 
-    .loginInfo {
+    .login-info {
         width:100%;
         height: .8rem;
         margin: 0;

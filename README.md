@@ -31,7 +31,7 @@
 ```powershell
     cd node
     npm i
-    node ./bin/www
+    npm start
 ```
 ### 前端vue预览
 ```powershell
