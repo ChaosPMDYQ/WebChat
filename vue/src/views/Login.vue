@@ -40,6 +40,8 @@ export default {
             if(!this.recognizeName() || !this.checkPassword()) 
                 return
 
+            console.log(this.account)
+
             this.logining = true
             this.axios.post('/api/login', this.account).then(res => {
                 if(res.data.success) {

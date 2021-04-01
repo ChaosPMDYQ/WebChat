@@ -10,17 +10,17 @@ module.exports = {
 
     //通过ID获取用户信息
     getUserByUid(uid) {
-        const sql = 'select * from user where uid = ?'
+        const sql = 'select * from user where uid = ?;'
         return query(sql, [uid])
     },
 
     getUserByPhone(phone) {
-        const sql = 'select * from user where phone = ?'
+        const sql = 'select * from user where phone = ?;'
         return query(sql, [phone])
     },
 
     getUserByEmail(email) {
-        const sql = 'select * from user where phone = ?'
+        const sql = 'select * from user where email = ?;'
         return query(sql, [email])
     }
 }
