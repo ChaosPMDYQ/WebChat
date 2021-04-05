@@ -1,6 +1,5 @@
 const userModel = require('../db/user')
-const jwt = require('jsonwebtoken')
-const jwtSrcret = require('../config').jwtSrcret
+const getToken = require('../modules/token').getTokenByUid
 const md5 = require('md5')
 
 module.exports = async (req, res, next) => {
@@ -23,12 +22,7 @@ module.exports = async (req, res, next) => {
     if (queryRes.length == 1) {
         if(md5(password) === queryRes[0].password) {
             //设置token
-            const payload = {
-                id: queryRes[0].uid
-            }
-            const token = jwt.sign(payload, jwtSrcret, {
-                expiresIn: '6h'
-            })
+            const token = getToken(queryRes[0].uid)
 
             res.send({
                 success: true,

@@ -20,3 +20,7 @@ a {
 a.router-link-exact-active {
   color: #42b983;
 }
+
+input.el-input__inner:focus {
+  border-color: #409EFF;
+}

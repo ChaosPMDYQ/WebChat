@@ -1,6 +1,5 @@
 const userModel = require('../db/user')
-const jwt = require('jsonwebtoken')
-const jwtSrcret = require('../config').jwtSrcret
+const getToken = require('../modules/token').getTokenByUid
 const md5 = require('md5')
 
 module.exports = async (req, res, next) => {
@@ -20,12 +19,8 @@ module.exports = async (req, res, next) => {
 
     //正常注册
     else if(type === 'register') {
-        const account = {
-            nickName: req.body.account.nickName,
-            phone: req.body.account.phone,
-            email: req.body.account.email,
-            password: md5(req.body.account.password)
-        }
+        const account = Object.assign(req.body.account)
+        account.password = md5(account.password)
 
         //后端检查
         const queryPhone = await userModel.getUserByPhone(account.phone)
@@ -37,12 +32,7 @@ module.exports = async (req, res, next) => {
 
             //获取刚刚注册的账号信息，顺便登录
             const queryRes = await userModel.getUserByPhone(account.phone)
-            const payload = {
-                id: queryRes[0].uid
-            }
-            const token = jwt.sign(payload, jwtSrcret, {
-                expiresIn: '6h'
-            })
+            const token = getToken(queryRes[0].uid)
 
             res.send({
                 success: true,

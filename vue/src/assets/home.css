@@ -1,0 +1,71 @@
+.home {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.main {
+    display: flex;
+    margin: auto;
+    min-width: 40rem;
+    min-height: 30rem;
+    width: 80%;
+    height: 80%;
+    max-width: 80rem;
+    max-height: 45rem;
+    background-color: white;
+    border-radius: .2rem;
+}
+
+.nav {
+    display: flex;
+    height: 100%;
+}
+
+.aside {
+    position: relative;
+    width: 3rem;
+    height: 100%;
+    box-sizing: border-box;
+    border-right: .1rem rgb(235, 235, 235) solid;
+}
+
+.aside .user-icon {
+    margin: 2.5rem auto;
+    width: 2rem;
+    height: 2rem;
+    border-radius: .2rem;
+}
+
+.aside .user-icon:hover {
+    cursor: pointer;
+}
+
+.aside i {
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    color: gray;
+}
+
+.aside i:hover {
+    color: #409EFF;
+    cursor: pointer;
+}
+
+.aside i.selected {
+    color: #409EFF;
+}
+
+.nav-info {
+    box-sizing: border-box;
+    width: 15rem;
+    border-right: .1rem rgb(235, 235, 235) solid;
+}
+
+.container {
+    width: 100%;
+    background-color: rgb(240, 240, 240);
+}
